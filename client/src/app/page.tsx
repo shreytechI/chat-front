@@ -1,9 +1,21 @@
-import ChatUi from "@/pages/ChatUi";
+"use client"
 
-export default function Home() {
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+
+export default function HomePage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.push("/auth")
+  }, [router])
+
   return (
-   <div>
-    <ChatUi/>
-   </div>
-  );
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
+        <p className="text-gray-600 mt-4">Loading...</p>
+      </div>
+    </div>
+  )
 }
