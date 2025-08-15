@@ -3,8 +3,11 @@
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@apollo/client";
 
 import { useAuth } from "@/contexts/auth-context";
+import { setAuthToken, setIsAuthenticated } from "@/lib/auth";
+import { LOGIN_MUTATION, SIGNUP_MUTATION } from "@/graphql/mutations";
 import { AuthInput } from "./AuthInput";
 import { AuthButton } from "./AuthButton";
 
@@ -23,7 +26,11 @@ interface FormErrors {
 export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
   const router = useRouter();
   const isSignup = mode === "signup";
-  const { login, signup } = useAuth();
+  const { setUser } = useAuth(); 
+
+  // GraphQL mutations and queries
+  const [loginMutation] = useMutation(LOGIN_MUTATION);
+  const [signupMutation] = useMutation(SIGNUP_MUTATION);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -79,24 +86,49 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
 
     try {
       if (isSignup) {
-        await signup({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
+        console.log("[v0] Attempting signup...");
+        const { data } = await signupMutation({
+          variables: {
+            input: {
+              username: formData.username,
+              email: formData.email,
+              password: formData.password,
+            },
+          },
         });
-      } else {
-        await login({
-          email: formData.email,
-          password: formData.password,
-        });
-      }
 
-      // Redirect to chat on successful auth\
-      console.log("pushing to chat");
-      
-      router.push("/chat");
+        console.log("[v0] Signup response:", data);
+        if (data?.signup) {
+          const authPayload = data.signup;
+          console.log("[v0] Setting token and user:", authPayload);
+          setAuthToken(authPayload.token);
+          setIsAuthenticated(true);
+          setUser(authPayload.user);
+          router.push("/chat");
+        }
+      } else {
+        console.log("[v0] Attempting login...");
+        const { data } = await loginMutation({
+          variables: {
+            input: {
+              email: formData.email,
+              password: formData.password,
+            },
+          },
+        });
+
+        console.log("[v0] Login response:", data);
+        if (data?.login) {
+          const authPayload = data.login;
+          console.log("[v0] Setting token and user:", authPayload);
+          setAuthToken(authPayload.token);
+          setIsAuthenticated(true);
+          setUser(authPayload.user);
+          router.push("/chat");
+        }
+      }
     } catch (error: any) {
-      console.error("Auth error:", error);
+      console.error("[v0] Auth error:", error);
 
       // Handle GraphQL errors
       const errorMessage =

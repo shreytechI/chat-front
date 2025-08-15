@@ -3,6 +3,25 @@
 import { apolloClient } from "./appolo-client"
 
 
+export const setIsAuthenticated = (value: boolean) => {
+  if (typeof window !== "undefined") {
+    localStorage.setItem("isAuthenticated", value.toString())
+  }
+}
+
+export const getIsAuthenticated = (): boolean => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("isAuthenticated") === "true"
+  }
+  return false
+}
+
+export const removeIsAuthenticated = () => {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("isAuthenticated")
+  }
+}
+
 export const setAuthToken = (token: string) => {
   if (typeof window !== "undefined") {
     // Set secure cookie with httpOnly-like protection
