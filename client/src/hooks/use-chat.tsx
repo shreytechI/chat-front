@@ -58,6 +58,7 @@ export function useChat() {
     skip: !selectedRoomId,
     onData: ({ data }) => {
       if (data.data?.messageAdded) {
+        console.log("[v0] New message received for selected room:", data.data.messageAdded)
         setMessages((prev) => [...prev, data.data.messageAdded])
       }
     },
@@ -116,22 +117,32 @@ export function useChat() {
     },
   })
 
-  // Update messages when data changes
   useEffect(() => {
     if (messagesData?.messages) {
+      console.log("[v0] Messages data updated for room:", selectedRoomId, "count:", messagesData.messages.length)
       setMessages(messagesData.messages)
     }
-  }, [messagesData])
+  }, [messagesData, selectedRoomId])
 
-  const selectRoom = useCallback((roomId: string) => {
-    setSelectedRoomId(roomId)
-    if (roomId) {
-      setUnreadCounts((prev) => ({
-        ...prev,
-        [roomId]: 0,
-      }))
-    }
-  }, [])
+  const selectRoom = useCallback(
+    (roomId: string) => {
+      console.log("[v0] Selecting room:", roomId)
+      setSelectedRoomId(roomId)
+
+      // Clear messages when switching rooms to avoid showing old messages
+      if (roomId !== selectedRoomId) {
+        setMessages([])
+      }
+
+      if (roomId) {
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [roomId]: 0,
+        }))
+      }
+    },
+    [selectedRoomId],
+  )
 
   useEffect(() => {
     if (roomsData?.rooms) {
@@ -153,6 +164,8 @@ export function useChat() {
     if (!selectedRoomId || (!text.trim() && (!files || files.length === 0))) return
 
     try {
+      console.log("[v0] Sending message to room:", selectedRoomId, "text:", text)
+
       // Handle file upload if files are present
       let mediaData = undefined
       if (files && files.length > 0) {
@@ -174,14 +187,17 @@ export function useChat() {
           },
         },
       })
+
+      console.log("[v0] Message sent successfully")
     } catch (error) {
-      console.error("Error sending message:", error)
+      console.error("[v0] Error sending message:", error)
       throw error // Re-throw to let the UI handle the error
     }
   }
 
   const createRoom = async (participantIds: string[], isGroup = false, name?: string) => {
     try {
+      console.log("[v0] Creating room with participants:", participantIds)
       const { data } = await createRoomMutation({
         variables: {
           participantIds,
@@ -191,27 +207,33 @@ export function useChat() {
       })
 
       if (data?.createRoom) {
+        console.log("[v0] Room created successfully:", data.createRoom.id)
         await refetchRooms()
         return data.createRoom
       }
     } catch (error) {
-      console.error("Error creating room:", error)
+      console.error("[v0] Error creating room:", error)
       throw error
     }
   }
 
   const findOrCreateDirectRoom = async (participantId: string) => {
     try {
+      console.log("[v0] Finding or creating direct room with participant:", participantId)
       const { data } = await findOrCreateRoom({
         variables: { participantId },
       })
 
       if (data?.findOrCreateRoom) {
+        console.log("[v0] Direct room found/created:", data.findOrCreateRoom.id)
         await refetchRooms()
         return data.findOrCreateRoom
+      } else {
+        console.error("[v0] No room data returned from findOrCreateRoom")
+        return null
       }
     } catch (error) {
-      console.error("Error finding/creating room:", error)
+      console.error("[v0] Error finding/creating room:", error)
       throw error
     }
   }

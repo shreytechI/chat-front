@@ -2,11 +2,12 @@
 import { useState, useMemo, useEffect } from "react"
 import { BsSearch, BsWifi, BsWifiOff } from "react-icons/bs"
 import type { UserListRowProps, Room, User, Message } from "@/types/chat"
-import { ChatWindow } from "@/components/chat-room/ChatWindow"
+
 import { useChat } from "@/hooks/use-chat"
 import { useAuth } from "@/contexts/auth-context"
 import OnlineUser from "@/components/online-users/Online-user"
 import UserListRow from "@/components/user-list-row/UserListRow"
+import { ChatWindow } from "@/components/chat-room/ChatWindow"
 
 export default function ChatUi() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -75,21 +76,28 @@ export default function ChatUi() {
 
   const handleUserClick = async (userId: string) => {
     try {
+      console.log("[v0] User clicked, userId:", userId)
+
       // Check if room already exists
       const existingRoom = rooms.find(
         (room: Room) => !room.isGroup && room.participants.some((p: User) => p.id === userId),
       )
 
       if (existingRoom) {
+        console.log("[v0] Found existing room:", existingRoom.id)
         selectRoom(existingRoom.id)
       } else {
+        console.log("[v0] Creating new room for user:", userId)
         const newRoom = await findOrCreateDirectRoom(userId)
         if (newRoom) {
+          console.log("[v0] Created/found room:", newRoom.id)
           selectRoom(newRoom.id)
+        } else {
+          console.error("[v0] Failed to create room")
         }
       }
     } catch (error) {
-      console.error("Error creating/selecting room:", error)
+      console.error("[v0] Error creating/selecting room:", error)
     }
   }
 
@@ -141,38 +149,41 @@ export default function ChatUi() {
         image: "/placeholder.svg?height=150&width=150",
       }
 
-  const chatData =
-    selectedRoomId && messages.length > 0
-      ? [
-          {
-            id: selectedRoomId,
-            name: currentChatUser.name,
-            image: currentChatUser.image,
-            chat: messages.map((msg: Message) => ({
-              id: msg.id,
-              text: msg.text,
-              dateTime: msg.createdAt,
-              isOwn: msg.senderId === user?.id,
-              file: msg.media
-                ? [
-                    {
-                      type: msg.media.mimeType?.startsWith("image/")
-                        ? ("image" as const)
-                        : msg.media.mimeType?.startsWith("video/")
-                          ? ("video" as const)
-                          : msg.media.mimeType?.startsWith("audio/")
-                            ? ("audio" as const)
-                            : ("document" as const),
-                      url: `${process.env.NEXT_PUBLIC_FILES_URL || "http://localhost:4000/uploads"}/${msg.media.url}`,
-                      name: msg.media.url,
-                      size: undefined,
-                    },
-                  ]
-                : undefined,
-            })),
-          },
-        ]
-      : []
+  const chatData = useMemo(() => {
+    if (!selectedRoomId || !currentRoom) return []
+
+    console.log("[v0] Generating chat data for room:", selectedRoomId, "messages count:", messages.length)
+
+    return [
+      {
+        id: selectedRoomId,
+        name: currentChatUser.name,
+        image: currentChatUser.image,
+        chat: messages.map((msg: Message) => ({
+          id: msg.id,
+          text: msg.text || "",
+          dateTime: msg.createdAt,
+          isOwn: msg.senderId === user?.id,
+          file: msg.media
+            ? [
+                {
+                  type: msg.media.mimeType?.startsWith("image/")
+                    ? ("image" as const)
+                    : msg.media.mimeType?.startsWith("video/")
+                      ? ("video" as const)
+                      : msg.media.mimeType?.startsWith("audio/")
+                        ? ("audio" as const)
+                        : ("document" as const),
+                  url: `${process.env.NEXT_PUBLIC_FILES_URL || "http://localhost:4000/uploads"}/${msg.media.url}`,
+                  name: msg.media.url,
+                  size: undefined,
+                },
+              ]
+            : undefined,
+        })),
+      },
+    ]
+  }, [selectedRoomId, currentRoom, messages, currentChatUser, user?.id])
 
   if (roomsLoading) {
     return (
@@ -308,7 +319,7 @@ export default function ChatUi() {
       </div>
 
       <div className="flex-1 flex flex-col h-full min-w-0">
-        {selectedRoomId && chatData.length > 0 ? (
+        {selectedRoomId && currentRoom ? (
           <>
             <ChatWindow
               chats={chatData}
