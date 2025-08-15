@@ -103,6 +103,7 @@ export interface User {
   id: string
   username: string
   email: string
+  profileImage?: string 
   isOnline: boolean
   lastSeen?: string
   createdAt: string

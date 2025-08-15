@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client"
+import { gql } from "@apollo/client";
 
 // Auth Queries
 export const ME_QUERY = gql`
@@ -7,9 +7,58 @@ export const ME_QUERY = gql`
       id
       username
       email
+      profileImage
       isOnline
       lastSeen
       createdAt
     }
   }
-`
+`;
+
+export const USERS_QUERY = gql`
+  query Users {
+    users {
+      id
+      username
+      email
+      profileImage
+      isOnline
+      lastSeen
+      createdAt
+    }
+  }
+`;
+
+// Chat Queries
+export const ROOMS_QUERY = gql`
+  query Rooms {
+    rooms {
+      id
+      participants {
+        id
+        username
+        email
+        isOnline
+      }
+      isGroup
+      name
+      createdAt
+    }
+  }
+`;
+
+export const MESSAGES_QUERY = gql`
+  query Messages($roomId: ID!, $limit: Int, $before: String) {
+    messages(roomId: $roomId, limit: $limit, before: $before) {
+      id
+      roomId
+      senderId
+      text
+      media {
+        url
+        mimeType
+      }
+      createdAt
+    }
+  }
+`;

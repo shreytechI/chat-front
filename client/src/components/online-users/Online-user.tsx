@@ -36,7 +36,7 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
           `}
         >
           <Image
-            src={image || "/placeholder.svg"}
+            src={encodeURI(String(image || "/placeholder.svg").trim())}
             alt={`${name || "User"}'s profile picture`}
             height={40}
             width={40}
