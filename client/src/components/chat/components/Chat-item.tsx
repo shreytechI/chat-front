@@ -1,3 +1,5 @@
+"use client";
+
 import type React from "react"
 import { ChatBubble } from "./Chat-bubble"
 import { ChatAvatar } from "./Chat-avatar"

@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import {  ChatItem } from './components/Chat-item';
 import { ChatListProps } from '@/types/chat';

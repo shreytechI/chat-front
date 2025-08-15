@@ -1,3 +1,5 @@
+"use client";
+
 import { ChatTimestampProps } from '@/types/chat';
 import React from 'react';
 

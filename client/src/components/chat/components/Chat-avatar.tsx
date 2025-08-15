@@ -1,3 +1,5 @@
+"use client";
+
 import { ChatAvatarProps } from '@/types/chat';
 import Image from 'next/image';
 import React from 'react';

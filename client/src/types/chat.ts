@@ -25,14 +25,6 @@ export interface ChatTimestampProps {
 
 
 
-export interface ChatMessage {
-  text?: string;
-  dateTime: string;
-  file?: ChatFilePropss[];
-  id?: string;
-  isOwn?: boolean
-}
-
 export interface ChatBubbleProps {
   message: ChatMessage;
   isOwn: boolean;
@@ -56,4 +48,107 @@ export interface ChatItemProps {
 
 export interface ChatListProps {
   chats: ChatData[];
+}
+
+
+export interface OnlineUserProps {
+  image: string
+  name?: string
+  isOnline?: boolean
+  className?: string
+}
+
+export interface UserListRowProps {
+  image: string
+  name: string
+  shortmessage: string
+  notifications?: number
+  istyping?: boolean
+  timestamp?: string
+  isOnline?: boolean
+  className?: string
+  onClick?: () => void
+  roomId?: string // Added roomId for room identification
+}
+
+export interface ChatTimestampProps {
+  dateTime: string
+}
+
+export interface ChatData {
+  id: string
+  name: string
+  image: string
+  chat: ChatMessage[]
+}
+
+export interface ChatMessage {
+  id: string
+  text?: string
+  dateTime: string
+  isOwn?: boolean
+  file?: Array<{
+    type: "image" | "video" | "audio" | "document"
+    url: string
+    name?: string
+    size?: string
+  }>
+}
+
+export interface ChatListProps {
+  chats: ChatData[]
+}
+
+export interface User {
+  id: string
+  username: string
+  email: string
+  isOnline: boolean
+  lastSeen?: string
+  createdAt: string
+}
+
+export interface Room {
+  id: string
+  participants: User[]
+  isGroup: boolean
+  name?: string
+  createdAt: string
+}
+
+export interface Message {
+  id: string
+  roomId: string
+  senderId: string
+  text?: string
+  media?: {
+    url: string
+    mimeType?: string
+  }
+  createdAt: string
+}
+
+export interface AuthPayload {
+  token: string
+  userId: string
+}
+
+export interface SignupInput {
+  username: string
+  email: string
+  password: string
+}
+
+export interface LoginInput {
+  email: string
+  password: string
+}
+
+export interface SendMessageInput {
+  roomId: string
+  text?: string
+  media?: {
+    filename: string
+    mimetype: string
+  }
 }

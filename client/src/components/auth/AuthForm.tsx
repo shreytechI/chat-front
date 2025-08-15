@@ -3,12 +3,13 @@
 import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+import { useAuth } from "@/contexts/auth-context";
 import { AuthInput } from "./AuthInput";
 import { AuthButton } from "./AuthButton";
 
 interface AuthFormProps {
   mode: "login" | "signup";
-  onSubmit: (data: any) => void;
   onToggleMode: () => void;
 }
 
@@ -16,11 +17,13 @@ interface FormErrors {
   username?: string;
   email?: string;
   password?: string;
+  general?: string;
 }
 
-export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
+export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
   const router = useRouter();
   const isSignup = mode === "signup";
+  const { login, signup } = useAuth();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -30,6 +33,7 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -63,35 +67,45 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    let submitData;
-    if (isSignup) {
-      // SignupInput: username, email, password
-      submitData = {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      };
-    } else {
-      // LoginInput: email, password
-      submitData = {
-        email: formData.email,
-        password: formData.password,
-      };
-    }
+    setIsLoading(true);
+    setErrors({});
 
-    onSubmit(submitData);
+    try {
+      if (isSignup) {
+        await signup({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        });
+      } else {
+        await login({
+          email: formData.email,
+          password: formData.password,
+        });
+      }
 
-    // Simulate successful auth and redirect to chat
-    setTimeout(() => {
+      // Redirect to chat on successful auth\
+      console.log("pushing to chat");
+      
       router.push("/chat");
-    }, 500);
+    } catch (error: any) {
+      console.error("Auth error:", error);
+
+      // Handle GraphQL errors
+      const errorMessage =
+        error?.graphQLErrors?.[0]?.message || error?.networkError?.message || error?.message || "Authentication failed. Please try again.";
+
+      setErrors({ general: errorMessage });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const updateField = (field: string, value: string) => {
@@ -103,6 +117,12 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
+      {errors.general && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm font-medium">{errors.general}</p>
+        </div>
+      )}
+
       {isSignup && (
         <AuthInput
           type="text"
@@ -124,14 +144,26 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
       />
 
       <div className="pt-2">
-        <AuthButton onClick={() => {}}>{isSignup ? "Create Account" : "Sign In"}</AuthButton>
+        <AuthButton onClick={() => {}} disabled={isLoading}>
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              {isSignup ? "Creating Account..." : "Signing In..."}
+            </div>
+          ) : isSignup ? (
+            "Create Account"
+          ) : (
+            "Sign In"
+          )}
+        </AuthButton>
       </div>
 
       <div className="text-center pt-4">
         <button
           type="button"
           onClick={onToggleMode}
-          className="text-gray-600 hover:text-violet-600 transition-colors duration-200 text-sm font-medium"
+          disabled={isLoading}
+          className="text-gray-600 hover:text-violet-600 transition-colors duration-200 text-sm font-medium disabled:opacity-50"
         >
           {isSignup ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
         </button>
