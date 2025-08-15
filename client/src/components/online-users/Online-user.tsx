@@ -1,6 +1,6 @@
-import { OnlineUserProps } from "@/types/OnlineUser";
-import Image from "next/image";
-import type React from "react";
+import type { OnlineUserProps } from "@/types/chat"
+import Image from "next/image"
+import type React from "react"
 
 const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, className = "" }) => {
   return (
@@ -15,6 +15,7 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
         md:w-20 md:h-26 
         lg:w-22 lg:h-30 
         p-2 sm:p-3 md:p-4 
+        transition-all duration-300 hover:shadow-md
         ${className}
       `}
       role="img"
@@ -26,13 +27,14 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
           className={`
             rounded-full
             overflow-hidden
-            ring-2 ring-white
+            ring-2 ${isOnline ? "ring-green-400" : "ring-gray-300"}
             shadow-md
             relative
             w-10 h-10 
             sm:w-10 sm:h-10 
             md:w-10 md:h-10 
             lg:w-14 lg:h-14 
+            transition-all duration-300
           `}
         >
           <Image
@@ -40,11 +42,11 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
             alt={`${name || "User"}'s profile picture`}
             height={40}
             width={40}
-            className="w-full h-full object-cover"
+            className={`w-full h-full object-cover transition-all duration-300 ${!isOnline ? "grayscale opacity-70" : ""}`}
           />
         </div>
         {/* Online Status Dot */}
-        {isOnline && (
+        {isOnline ? (
           <div
             className={`
               absolute -bottom-0.5 -right-0.5
@@ -60,6 +62,21 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
             `}
             aria-hidden="true"
           />
+        ) : (
+          <div
+            className={`
+              absolute -bottom-0.5 -right-0.5
+              bg-gradient-to-br from-gray-400 to-gray-500
+              rounded-full
+              ring-2 ring-white 
+              shadow-lg
+              w-3.5 h-3.5 
+              sm:w-2 sm:h-2 
+              md:w-3 md:h-3 
+              lg:w-3 lg:h-3 
+            `}
+            aria-hidden="true"
+          />
         )}
       </div>
       {/* User Name */}
@@ -67,7 +84,7 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
         <span
           className={`
             font-medium font-sans
-            text-gray-800 
+            ${isOnline ? "text-gray-800" : "text-gray-500"}
             mt-1.5 sm:mt-1
             text-center truncate max-w-full
             tracking-tight
@@ -75,6 +92,7 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
             sm:text-base 
             md:text-sm 
             lg:text-sm 
+            transition-colors duration-300
           `}
           title={name}
         >
@@ -82,7 +100,7 @@ const OnlineUser: React.FC<OnlineUserProps> = ({ image, name, isOnline = true, c
         </span>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default OnlineUser;
+export default OnlineUser

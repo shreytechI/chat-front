@@ -62,3 +62,22 @@ export const MESSAGES_QUERY = gql`
     }
   }
 `;
+
+
+export const FIND_OR_CREATE_ROOM_QUERY = gql`
+  query FindOrCreateRoom($participantId: ID!) {
+    findOrCreateRoom(participantId: $participantId) {
+      id
+      participants {
+        id
+        username
+        email
+        profileImage
+        isOnline
+      }
+      isGroup
+      name
+      createdAt
+    }
+  }
+`

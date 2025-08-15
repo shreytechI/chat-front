@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { removeAuthToken, getAuthToken, setAuthToken, getIsAuthenticated, removeIsAuthenticated } from "@/lib/auth";
 import { useApolloClient, useQuery } from "@apollo/client";
 import type { User, AuthPayload, LoginInput, SignupInput } from "@/types/chat";
-import { LOGIN_MUTATION, SIGNUP_MUTATION } from "@/graphql/mutations";
+import { LOGIN_MUTATION, SET_USER_ONLINE_MUTATION, SIGNUP_MUTATION } from "@/graphql/mutations";
 import { ME_QUERY } from "@/graphql/queries";
 
 interface AuthContextType {
@@ -13,7 +13,7 @@ interface AuthContextType {
   login: (input: LoginInput) => Promise<AuthPayload>;
   signup: (input: SignupInput) => Promise<AuthPayload>;
   logout: () => void;
-  setUser: (user: User | null) => void
+  setUser: (user: User | null) => void;
   setUserOnlineStatus: (isOnline: boolean) => Promise<void>;
 }
 
@@ -116,7 +116,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const setUserOnlineStatus = async (isOnline: boolean) => {
-    console.log("Set user online status:", isOnline);
+    if (!user) return;
+
+    try {
+      console.log("[v0] Setting user online status:", isOnline);
+
+      await apolloClient.mutate({
+        mutation: SET_USER_ONLINE_MUTATION,
+        variables: { isOnline },
+      });
+
+      // Update local user state
+      setUser((prev) => (prev ? { ...prev, isOnline } : null));
+    } catch (error) {
+      console.error("[v0] Error setting user online status:", error);
+    }
   };
 
   const value: AuthContextType = {

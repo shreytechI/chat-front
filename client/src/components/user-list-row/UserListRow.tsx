@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import type React from "react";
-import type { UserListRowProps } from "@/types/userListRow";
-import OnlineUser from "../online-users/Online-user";
+import type React from "react"
+import type { UserListRowProps } from "@/types/chat"
+import OnlineUser from "../online-users/Online-user"
 
 const UserListRow: React.FC<UserListRowProps> = ({
   image,
@@ -23,9 +23,10 @@ const UserListRow: React.FC<UserListRowProps> = ({
         sm:gap-2 sm:p-2
         md:gap-3 md:p-3
         lg:gap-3 lg:p-3
-        bg-gray-100
-        hover:bg-gray-50 transition-colors duration-200
+        bg-white
+        hover:bg-gray-50 transition-all duration-200
         cursor-pointer border-b border-gray-100 last:border-b-0
+        ${notifications > 0 ? "bg-blue-50 border-l-4 border-l-blue-500" : ""}
         ${className}
       `}
       role="button"
@@ -45,8 +46,18 @@ const UserListRow: React.FC<UserListRowProps> = ({
       <div className="flex-1 min-w-0">
         {/* Name and Timestamp Row */}
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base md:text-lg">{name}</h3>
-          {timestamp && <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0 ml-2">{timestamp}</span>}
+          <h3
+            className={`font-semibold truncate text-sm sm:text-base md:text-lg ${notifications > 0 ? "text-gray-900" : "text-gray-800"}`}
+          >
+            {name}
+          </h3>
+          {timestamp && (
+            <span
+              className={`text-xs sm:text-sm flex-shrink-0 ml-2 ${notifications > 0 ? "text-blue-600 font-medium" : "text-gray-500"}`}
+            >
+              {timestamp}
+            </span>
+          )}
         </div>
         {/* Message Row */}
         <div className="flex items-center justify-between">
@@ -55,19 +66,32 @@ const UserListRow: React.FC<UserListRowProps> = ({
               <div className="flex items-center gap-1">
                 <span className="text-xs sm:text-sm text-blue-600 font-medium">typing</span>
                 <div className="flex gap-0.5">
-                  <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                  <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                  <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                  <div
+                    className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  ></div>
+                  <div
+                    className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"
+                    style={{ animationDelay: "150ms" }}
+                  ></div>
+                  <div
+                    className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"
+                    style={{ animationDelay: "300ms" }}
+                  ></div>
                 </div>
               </div>
             ) : (
-              <p className="text-xs sm:text-sm text-gray-600 truncate">{shortmessage}</p>
+              <p
+                className={`text-xs sm:text-sm truncate ${notifications > 0 ? "text-gray-700 font-medium" : "text-gray-600"}`}
+              >
+                {shortmessage}
+              </p>
             )}
           </div>
           {/* Notification Badge */}
           {notifications > 0 && (
             <div
-              className="ml-2 flex-shrink-0 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-4 sm:min-w-[20px] sm:h-5 md:min-w-[22px] md:h-6 flex items-center justify-center px-1 sm:px-1.5"
+              className="ml-2 flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold rounded-full min-w-[18px] h-4 sm:min-w-[20px] sm:h-5 md:min-w-[22px] md:h-6 flex items-center justify-center px-1 sm:px-1.5 shadow-lg animate-pulse"
               aria-label={`${notifications} unread messages`}
             >
               {notifications > 99 ? "99+" : notifications}
@@ -76,7 +100,7 @@ const UserListRow: React.FC<UserListRowProps> = ({
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default UserListRow;
+export default UserListRow

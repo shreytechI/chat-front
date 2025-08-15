@@ -1,78 +1,131 @@
-"use client";
-import { useState, useMemo } from "react";
-import { BsSearch } from "react-icons/bs";
-import type { UserListRowProps, Room, User, Message } from "@/types/chat";
-import OnlineUser from "@/components/online-users/Online-user";
-import UserListRow from "@/components/user-list-row/UserListRow";
-import { ChatWindow } from "@/components/chat-room/ChatWindow";
-import { useChat } from "@/hooks/use-chat";
-import { useAuth } from "@/contexts/auth-context";
+"use client"
+import { useState, useMemo, useEffect } from "react"
+import { BsSearch, BsWifi, BsWifiOff } from "react-icons/bs"
+import type { UserListRowProps, Room, User, Message } from "@/types/chat"
+import { ChatWindow } from "@/components/chat-room/ChatWindow"
+import { useChat } from "@/hooks/use-chat"
+import { useAuth } from "@/contexts/auth-context"
+import OnlineUser from "@/components/online-users/Online-user"
+import UserListRow from "@/components/user-list-row/UserListRow"
 
 export default function ChatUi() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const { user } = useAuth();
-  const { rooms, users, messages, selectedRoomId, roomsLoading, messagesLoading, sendMessage, selectRoom } = useChat();
+  const [searchQuery, setSearchQuery] = useState("")
+  const { user } = useAuth()
+  const {
+    rooms,
+    users,
+    messages,
+    selectedRoomId,
+    roomsLoading,
+    messagesLoading,
+    sendMessage,
+    selectRoom,
+    unreadCounts,
+    roomLatestMessages,
+    newMessageSound,
+    typingUsers,
+    connectionStatus,
+    handleSoundPlayed,
+    findOrCreateDirectRoom,
+  } = useChat()
 
-  console.log("users from chat ui ", users);
-  console.log("rooms from chat ui", rooms);
-  console.log("messages from chat ui ", messages);
+  useEffect(() => {
+    if (user) {
+      console.log("[v0] User entered chat UI, setting online status")
+    }
+  }, [user])
 
-  // Convert rooms to UserListRowProps format for the sidebar
-  const recentChats: UserListRowProps[] = useMemo(() => {
-    return rooms.map((room: Room) => {
-      // Find the other participant (not the current user)
-      const otherParticipant = room.participants.find((p: User) => p.id !== user?.id);
-      const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const totalUnread = useMemo(() => {
+    return Object.values(unreadCounts).reduce((sum, count) => sum + count, 0)
+  }, [unreadCounts])
 
-      return {
-        image: otherParticipant?.profileImage || "/placeholder.svg?height=150&width=150",
-        name: room.isGroup ? room.name || "Group Chat" : otherParticipant?.username || "Unknown User",
-        shortmessage: lastMessage?.text || "No messages yet",
-        timestamp: lastMessage
-          ? new Date(lastMessage.createdAt).toLocaleTimeString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })
-          : "",
-        isOnline: otherParticipant?.isOnline || false,
-        notifications: 0, // TODO: Implement unread count
-        onClick: () => selectRoom(room.id),
-        roomId: room.id,
-      };
-    });
-  }, [rooms, messages, user?.id, selectRoom]);
+  useEffect(() => {
+    document.title = totalUnread > 0 ? `(${totalUnread}) Chat App` : "Chat App"
+  }, [totalUnread])
 
-  // Get online users for the top bar
+  const userList: UserListRowProps[] = useMemo(() => {
+    return users
+      .filter((u: User) => u.id !== user?.id) // Exclude current user
+      .map((u: User) => {
+        // Find existing room with this user
+        const existingRoom = rooms.find(
+          (room: Room) => !room.isGroup && room.participants.some((p: User) => p.id === u.id),
+        )
+        const lastMessage = existingRoom ? roomLatestMessages[existingRoom.id] : null
+
+        return {
+          image: u.profileImage || "/placeholder.svg?height=150&width=150",
+          name: u.username,
+          shortmessage: lastMessage?.text || "Click to start chatting",
+          timestamp: lastMessage
+            ? new Date(lastMessage.createdAt).toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })
+            : "",
+          isOnline: u.isOnline,
+          notifications: existingRoom ? unreadCounts[existingRoom.id] || 0 : 0,
+          onClick: () => handleUserClick(u.id),
+          userId: u.id,
+          roomId: existingRoom?.id,
+        }
+      })
+  }, [users, rooms, roomLatestMessages, unreadCounts, user?.id])
+
+  const handleUserClick = async (userId: string) => {
+    try {
+      // Check if room already exists
+      const existingRoom = rooms.find(
+        (room: Room) => !room.isGroup && room.participants.some((p: User) => p.id === userId),
+      )
+
+      if (existingRoom) {
+        selectRoom(existingRoom.id)
+      } else {
+        const newRoom = await findOrCreateDirectRoom(userId)
+        if (newRoom) {
+          selectRoom(newRoom.id)
+        }
+      }
+    } catch (error) {
+      console.error("Error creating/selecting room:", error)
+    }
+  }
+
   const onlineUsers = useMemo(() => {
     return users
       .filter((u: User) => u.isOnline && u.id !== user?.id)
-      .slice(0, 10) // Limit to 10 users
+      .slice(0, 10)
       .map((u: User) => ({
         image: u.profileImage || "/placeholder.svg?height=150&width=150",
         name: u.username,
         isOnline: true,
-      }));
-  }, [users, user?.id]);
+        onClick: () => handleUserClick(u.id),
+      }))
+  }, [users, user?.id])
 
-  // Filter chats based on search query
-  const filteredChats = useMemo(() => {
-    if (!searchQuery.trim()) return recentChats;
-    return recentChats
+  const filteredUsers = useMemo(() => {
+    if (!searchQuery.trim()) return userList
+    return userList
       .filter(
-        (chat) => chat.name.toLowerCase().includes(searchQuery.toLowerCase()) || chat.shortmessage.toLowerCase().includes(searchQuery.toLowerCase())
+        (userItem) =>
+          userItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          userItem.shortmessage.toLowerCase().includes(searchQuery.toLowerCase()),
       )
       .sort((a, b) => {
-        const aNameMatch = a.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const bNameMatch = b.name.toLowerCase().includes(searchQuery.toLowerCase());
-        if (aNameMatch && !bNameMatch) return -1;
-        if (!aNameMatch && bNameMatch) return 1;
-        return 0;
-      });
-  }, [recentChats, searchQuery]);
+        const aNameMatch = a.name.toLowerCase().includes(searchQuery.toLowerCase())
+        const bNameMatch = b.name.toLowerCase().includes(searchQuery.toLowerCase())
+        if (aNameMatch && !bNameMatch) return -1
+        if (!aNameMatch && bNameMatch) return 1
+        // Sort online users first
+        if (a.isOnline && !b.isOnline) return -1
+        if (!a.isOnline && b.isOnline) return 1
+        return 0
+      })
+  }, [userList, searchQuery])
 
-  // Get current room and user data
-  const currentRoom = rooms.find((room: Room) => room.id === selectedRoomId);
+  const currentRoom = rooms.find((room: Room) => room.id === selectedRoomId)
   const currentChatUser = currentRoom
     ? {
         name: currentRoom.isGroup
@@ -80,14 +133,14 @@ export default function ChatUi() {
           : currentRoom.participants.find((p: User) => p.id !== user?.id)?.username || "Unknown User",
         image: currentRoom.isGroup
           ? "/placeholder.svg?height=150&width=150"
-          : currentRoom.participants.find((p: User) => p.id !== user?.id)?.profileImage || "/placeholder.svg?height=150&width=150",
+          : currentRoom.participants.find((p: User) => p.id !== user?.id)?.profileImage ||
+            "/placeholder.svg?height=150&width=150",
       }
     : {
         name: "Select a chat",
         image: "/placeholder.svg?height=150&width=150",
-      };
+      }
 
-  // Convert messages to the format expected by ChatWindow
   const chatData =
     selectedRoomId && messages.length > 0
       ? [
@@ -106,10 +159,10 @@ export default function ChatUi() {
                       type: msg.media.mimeType?.startsWith("image/")
                         ? ("image" as const)
                         : msg.media.mimeType?.startsWith("video/")
-                        ? ("video" as const)
-                        : msg.media.mimeType?.startsWith("audio/")
-                        ? ("audio" as const)
-                        : ("document" as const),
+                          ? ("video" as const)
+                          : msg.media.mimeType?.startsWith("audio/")
+                            ? ("audio" as const)
+                            : ("document" as const),
                       url: `${process.env.NEXT_PUBLIC_FILES_URL || "http://localhost:4000/uploads"}/${msg.media.url}`,
                       name: msg.media.url,
                       size: undefined,
@@ -119,7 +172,7 @@ export default function ChatUi() {
             })),
           },
         ]
-      : [];
+      : []
 
   if (roomsLoading) {
     return (
@@ -129,16 +182,35 @@ export default function ChatUi() {
           <p className="text-gray-600 mt-4">Loading chats...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Left Sidebar */}
+      {/* <NotificationSound shouldPlay={newMessageSound} onPlayed={handleSoundPlayed} /> */}
+
       <div className="w-full md:w-2/5 lg:w-1/3 xl:w-1/4 flex-col border-r border-gray-200 bg-white hidden md:flex h-full">
-        {/* Header - Fixed */}
         <div className="flex-shrink-0 p-4 border-b border-gray-200">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Chats</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-gray-900">Chats</h1>
+            <div className="flex items-center gap-2">
+              {connectionStatus === "connected" ? (
+                <BsWifi className="w-5 h-5 text-green-500" title="Connected" />
+              ) : connectionStatus === "connecting" ? (
+                <div
+                  className="w-5 h-5 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin"
+                  title="Connecting..."
+                />
+              ) : (
+                <BsWifiOff className="w-5 h-5 text-red-500" title="Disconnected" />
+              )}
+              {totalUnread > 0 && (
+                <div className="bg-red-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
+                  {totalUnread > 99 ? "99+" : totalUnread}
+                </div>
+              )}
+            </div>
+          </div>
           <div className="relative">
             <input
               type="text"
@@ -151,41 +223,49 @@ export default function ChatUi() {
           </div>
         </div>
 
-        {/* Online Users */}
         <div className="flex-shrink-0 p-4 border-b border-gray-200">
           <div className="flex space-x-2 overflow-x-auto scrollbar-hidden">
-            {onlineUsers.map((user: { image: string; name: string; isOnline: boolean }, index: number) => (
-              <OnlineUser
-                key={index}
-                image={user.image}
-                name={user.name}
-                isOnline={true}
-                className="!w-16 !h-20 !p-1 sm:!w-20 sm:!h-24 md:!w-24 md:!h-28 lg:!w-18 lg:!h-22 flex-shrink-0"
-              />
-            ))}
+            {onlineUsers.map(
+              (user: { image: string; name: string; isOnline: boolean; onClick?: () => void }, index: number) => (
+                <div key={index} onClick={user.onClick} className="cursor-pointer">
+                  <OnlineUser
+                    image={user.image}
+                    name={user.name}
+                    isOnline={true}
+                    className="!w-16 !h-20 !p-1 sm:!w-20 sm:!h-24 md:!w-24 md:!h-28 lg:!w-18 lg:!h-22 flex-shrink-0"
+                  />
+                </div>
+              ),
+            )}
             {onlineUsers.length === 0 && <div className="text-sm text-gray-500 py-2">No users online</div>}
           </div>
         </div>
 
-        {/* Recent Chats */}
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <h2 className="flex-shrink-0 text-lg ml-4 py-2 font-semibold text-gray-900 border-b border-gray-200">
-            Recent {searchQuery && `(${filteredChats.length} results)`}
+            Users {searchQuery && `(${filteredUsers.length} results)`}
           </h2>
           <div className="flex-1 overflow-y-auto scrollbar-hidden">
-            {filteredChats.map((chat: UserListRowProps, index: number) => (
-              <UserListRow key={chat.roomId || index} {...chat} className={selectedRoomId === chat.roomId ? "bg-violet-100" : ""} />
+            {filteredUsers.map((userItem: UserListRowProps, index: number) => (
+              <UserListRow
+                key={userItem.userId || index}
+                {...userItem}
+                className={selectedRoomId === userItem.roomId ? "bg-violet-100" : ""}
+              />
             ))}
-            {filteredChats.length === 0 && searchQuery && (
-              <div className="p-4 text-center text-gray-500">No chats found for &quot;{searchQuery}&quot;</div>
+            {filteredUsers.length === 0 && searchQuery && (
+              <div className="p-4 text-center text-gray-500">No users found for &quot;{searchQuery}&quot;</div>
             )}
-            {filteredChats.length === 0 && !searchQuery && <div className="p-4 text-center text-gray-500">No chats yet. Start a conversation!</div>}
+            {filteredUsers.length === 0 && !searchQuery && (
+              <div className="p-4 text-center text-gray-500">No users available. Invite friends to chat!</div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile Chat List Overlay */}
-      <div className={`md:hidden fixed inset-0 bg-white z-50 flex flex-col ${selectedRoomId === null ? "flex" : "hidden"}`}>
+      <div
+        className={`md:hidden fixed inset-0 bg-white z-50 flex flex-col ${selectedRoomId === null ? "flex" : "hidden"}`}
+      >
         <div className="flex-shrink-0 p-4 border-b border-gray-200">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Chats</h1>
           <div className="relative">
@@ -201,27 +281,44 @@ export default function ChatUi() {
         </div>
         <div className="flex-shrink-0 p-4 border-b border-gray-200">
           <div className="flex space-x-2 overflow-x-auto">
-            {onlineUsers.map((user: { image: string; name: string; isOnline: boolean }, index: number) => (
-              <OnlineUser key={index} image={user.image} name={user.name} isOnline={true} className="!w-16 !h-20 !p-1 flex-shrink-0" />
-            ))}
+            {onlineUsers.map(
+              (user: { image: string; name: string; isOnline: boolean; onClick?: () => void }, index: number) => (
+                <div key={index} onClick={user.onClick} className="cursor-pointer">
+                  <OnlineUser
+                    image={user.image}
+                    name={user.name}
+                    isOnline={true}
+                    className="!w-16 !h-20 !p-1 flex-shrink-0"
+                  />
+                </div>
+              ),
+            )}
           </div>
         </div>
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <h2 className="flex-shrink-0 text-lg ml-4 py-2 font-semibold text-gray-900 border-b border-gray-200">
-            Recent {searchQuery && `(${filteredChats.length} results)`}
+            Users {searchQuery && `(${filteredUsers.length} results)`}
           </h2>
           <div className="flex-1 overflow-y-auto">
-            {filteredChats.map((chat: UserListRowProps, index: number) => (
-              <UserListRow key={chat.roomId || index} {...chat} className="" />
+            {filteredUsers.map((userItem: UserListRowProps, index: number) => (
+              <UserListRow key={userItem.userId || index} {...userItem} className="" />
             ))}
           </div>
         </div>
       </div>
 
-      {/* Right Chat Window */}
       <div className="flex-1 flex flex-col h-full min-w-0">
         {selectedRoomId && chatData.length > 0 ? (
-          <ChatWindow chats={chatData} currentUser={currentChatUser} onSendMessage={sendMessage} onBack={() => selectRoom("")} />
+          <>
+            <ChatWindow
+              chats={chatData}
+              currentUser={currentChatUser}
+              onSendMessage={sendMessage}
+              onBack={() => selectRoom("")}
+              // loading={messagesLoading}
+            />
+            {/* {selectedRoomId && typingUsers[selectedRoomId] && <TypingIndicator users={typingUsers[selectedRoomId]} />} */}
+          </>
         ) : (
           <div className="flex-1 flex items-center justify-center text-gray-500 bg-gray-50">
             <div className="text-center">
@@ -233,5 +330,5 @@ export default function ChatUi() {
         )}
       </div>
     </div>
-  );
+  )
 }

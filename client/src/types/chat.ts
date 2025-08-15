@@ -68,7 +68,8 @@ export interface UserListRowProps {
   isOnline?: boolean
   className?: string
   onClick?: () => void
-  roomId?: string // Added roomId for room identification
+  roomId?: string 
+  userId?: string
 }
 
 export interface ChatTimestampProps {
@@ -115,6 +116,7 @@ export interface Room {
   isGroup: boolean
   name?: string
   createdAt: string
+   lastMessage?: Message
 }
 
 export interface Message {
