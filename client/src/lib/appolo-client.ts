@@ -3,8 +3,7 @@ import { setContext } from "@apollo/client/link/context"
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions"
 import { getMainDefinition } from "@apollo/client/utilities"
 import { createClient } from "graphql-ws"
-import { getAuthToken } from "./auth" // Import getAuthToken function
-
+import { getAuthToken } from "./auth" 
 // HTTP Link for queries and mutations
 const httpLink = createHttpLink({
   uri: process.env.NEXT_PUBLIC_GRAPHQL_HTTP_URL || "http://localhost:4000/graphql",
@@ -17,7 +16,7 @@ const wsLink =
         createClient({
           url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URL || "ws://localhost:4000/graphql",
           connectionParams: () => {
-            const token = getAuthToken() // Use getAuthToken instead of localStorage
+            const token = getAuthToken() 
             return {
               authorization: token ? `Bearer ${token}` : "",
             }
@@ -28,7 +27,7 @@ const wsLink =
 
 // Auth Link to add JWT token to requests
 const authLink = setContext((_, { headers }) => {
-  const token = typeof window !== "undefined" ? getAuthToken() : null // Use getAuthToken instead of localStorage
+  const token = typeof window !== "undefined" ? getAuthToken() : null 
 
   return {
     headers: {
