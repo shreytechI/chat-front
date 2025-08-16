@@ -15,6 +15,13 @@ const UserListRow: React.FC<UserListRowProps> = ({
   className = "",
   onClick,
 }) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault()
+      onClick?.()
+    }
+  }
+
   return (
     <div
       className={`
@@ -33,6 +40,7 @@ const UserListRow: React.FC<UserListRowProps> = ({
       tabIndex={0}
       aria-label={`Chat with ${name}`}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
     >
       {/* Profile Image with Online Status */}
       <div className="flex-shrink-0">
@@ -91,7 +99,7 @@ const UserListRow: React.FC<UserListRowProps> = ({
           {/* Notification Badge */}
           {notifications > 0 && (
             <div
-              className="ml-2 flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold rounded-full min-w-[18px] h-4 sm:min-w-[20px] sm:h-5 md:min-w-[22px] md:h-6 flex items-center justify-center px-1 sm:px-1.5 shadow-lg animate-pulse"
+              className="ml-2 flex-shrink-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold rounded-full min-w-[18px] h-4 sm:min-w-[20px] sm:h-5 md:min-w-[22px] md:h-6 flex items-center justify-center px-1 sm:px-1.5 shadow-lg"
               aria-label={`${notifications} unread messages`}
             >
               {notifications > 99 ? "99+" : notifications}

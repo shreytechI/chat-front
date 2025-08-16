@@ -160,28 +160,37 @@ export function useChat() {
     setNewMessageSound(false)
   }, [])
 
-  const sendMessage = async (text: string, files?: File[]) => {
-    if (!selectedRoomId || (!text.trim() && (!files || files.length === 0))) return
+  // <CHANGE> Fixed sendMessage to accept roomId as first parameter and properly handle the backend input format
+  const sendMessage = async (roomId: string, text: string, media?: File) => {
+    console.log("[v0] sendMessage called with roomId:", roomId, "text:", text, "media:", media)
+
+    if (!roomId) {
+      console.error("[v0] Cannot send message: No room ID provided")
+      throw new Error("Room ID is required")
+    }
+
+    if (!text.trim() && !media) {
+      console.error("[v0] Cannot send message: No content provided")
+      return
+    }
 
     try {
-      console.log("[v0] Sending message to room:", selectedRoomId, "text:", text)
+      console.log("[v0] Sending message to room:", roomId, "text:", text)
 
-      // Handle file upload if files are present
+      // Handle file upload if media is present
       let mediaData = undefined
-      if (files && files.length > 0) {
-        // Upload the first file only for now
-        const file = files[0]
-        const uploadResult = await uploadFile(file)
+      if (media) {
+        const uploadResult = await uploadFile(media)
         mediaData = {
           filename: uploadResult.filename,
           mimetype: uploadResult.mimetype,
         }
       }
 
-      await sendMessageMutation({
+     const res= await sendMessageMutation({
         variables: {
           input: {
-            roomId: selectedRoomId,
+            roomId: roomId,
             text: text.trim() || undefined,
             media: mediaData,
           },
@@ -227,6 +236,15 @@ export function useChat() {
       if (data?.findOrCreateRoom) {
         console.log("[v0] Direct room found/created:", data.findOrCreateRoom.id)
         await refetchRooms()
+
+        const roomId = data.findOrCreateRoom.id
+        console.log("[v0] Immediately selecting room:", roomId)
+        setSelectedRoomId(roomId)
+        setUnreadCounts((prev) => ({
+          ...prev,
+          [roomId]: 0,
+        }))
+
         return data.findOrCreateRoom
       } else {
         console.error("[v0] No room data returned from findOrCreateRoom")

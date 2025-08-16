@@ -2,7 +2,6 @@
 import { useState, useMemo, useEffect } from "react"
 import { BsSearch, BsWifi, BsWifiOff } from "react-icons/bs"
 import type { UserListRowProps, Room, User, Message } from "@/types/chat"
-
 import { useChat } from "@/hooks/use-chat"
 import { useAuth } from "@/contexts/auth-context"
 import OnlineUser from "@/components/online-users/Online-user"
@@ -91,14 +90,30 @@ export default function ChatUi() {
         const newRoom = await findOrCreateDirectRoom(userId)
         if (newRoom) {
           console.log("[v0] Created/found room:", newRoom.id)
-          selectRoom(newRoom.id)
         } else {
           console.error("[v0] Failed to create room")
+          alert("Failed to create chat room. Please try again.")
         }
       }
     } catch (error) {
       console.error("[v0] Error creating/selecting room:", error)
+      alert("Error opening chat. Please try again.")
     }
+  }
+
+  const handleSendMessage = async (message: string, files?: File[]) => {
+    console.log("reached the handle send message function ",selectedRoomId," mes",message);
+    
+    if (!selectedRoomId) {
+      console.error("[v0] No room selected for sending message")
+      throw new Error("No room selected")
+    }
+
+    console.log("[v0] Sending message to room:", selectedRoomId, "text:", message)
+
+    const media = files && files.length > 0 ? files[0] : undefined
+
+    return await sendMessage(selectedRoomId, message, media)
   }
 
   const onlineUsers = useMemo(() => {
@@ -324,7 +339,7 @@ export default function ChatUi() {
             <ChatWindow
               chats={chatData}
               currentUser={currentChatUser}
-              onSendMessage={sendMessage}
+              onSendMessage={handleSendMessage}
               onBack={() => selectRoom("")}
               // loading={messagesLoading}
             />
