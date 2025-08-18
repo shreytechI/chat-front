@@ -2,18 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useSubscription, useLazyQuery } from "@apollo/client";
-
 import { useAuth } from "@/contexts/auth-context";
 import { uploadFile } from "@/lib/file-upload";
 import type { Message, Room } from "@/types/chat";
 import { FIND_OR_CREATE_ROOM_QUERY, MESSAGES_QUERY, ROOMS_QUERY, USERS_QUERY } from "@/graphql/queries";
 import { CREATE_ROOM_MUTATION, SEND_MESSAGE_MUTATION } from "@/graphql/mutations";
-import {
-  ALL_ROOMS_MESSAGE_SUBSCRIPTION,
-  MESSAGE_ADDED_SUBSCRIPTION,
-  ROOM_UPDATED_SUBSCRIPTION,
-  USER_STATUS_CHANGED_SUBSCRIPTION,
-} from "@/graphql/subscriptions";
+import { ALL_ROOMS_MESSAGE_SUBSCRIPTION, ROOM_UPDATED_SUBSCRIPTION, USER_STATUS_CHANGED_SUBSCRIPTION } from "@/graphql/subscriptions";
 
 export function useChat() {
   const { user } = useAuth();
@@ -57,24 +51,21 @@ export function useChat() {
 
   const [findOrCreateRoom] = useLazyQuery(FIND_OR_CREATE_ROOM_QUERY);
 
-  // Subscribe to new messages for selected room only
-  useSubscription(MESSAGE_ADDED_SUBSCRIPTION, {
-    variables: { roomId: selectedRoomId! },
-    skip: !selectedRoomId,
-    onData: ({ data }) => {
-      if (data.data?.messageAdded) {
-        console.log("[v0] New message received for selected room:", data.data.messageAdded);
-        setMessages((prev) => [...prev, data.data.messageAdded]);
-      }
-    },
-  });
-
+  // Subscribe to new messages for ALL user rooms
   useSubscription(ALL_ROOMS_MESSAGE_SUBSCRIPTION, {
     skip: !user,
     onData: ({ data }) => {
       if (data.data?.messageAddedToUserRooms) {
         const newMessage = data.data.messageAddedToUserRooms;
-        console.log("[v0] New message in room:", newMessage.roomId);
+        console.log("New message received:", newMessage);
+
+        if (newMessage.roomId === selectedRoomId) {
+          setMessages((prev) => {
+            // Avoid duplicates
+            if (prev.some((msg) => msg.id === newMessage.id)) return prev;
+            return [...prev, newMessage];
+          });
+        }
 
         // Update latest message for the room
         setRoomLatestMessages((prev) => ({
@@ -88,19 +79,16 @@ export function useChat() {
             ...prev,
             [newMessage.roomId]: (prev[newMessage.roomId] || 0) + 1,
           }));
-
           setNewMessageSound(true);
         }
-
-        // If message is in currently selected room, add to messages
-        if (newMessage.roomId === selectedRoomId) {
-          setMessages((prev) => {
-            // Avoid duplicates
-            if (prev.some((msg) => msg.id === newMessage.id)) return prev;
-            return [...prev, newMessage];
-          });
-        }
       }
+    },
+    onError: (error) => {
+      console.error("Subscription error:", error);
+      setConnectionStatus("disconnected");
+    },
+    onComplete: () => {
+      console.log("Subscription completed");
     },
   });
 
@@ -108,7 +96,7 @@ export function useChat() {
     skip: !user,
     onData: ({ data }) => {
       if (data.data?.roomUpdated) {
-        console.log("[v0] Room updated:", data.data.roomUpdated);
+        console.log("Room updated:", data.data.roomUpdated);
         refetchRooms();
       }
     },
@@ -117,21 +105,21 @@ export function useChat() {
   useSubscription(USER_STATUS_CHANGED_SUBSCRIPTION, {
     skip: !user,
     onData: ({ data }) => {
-      console.log("[v0] User status changed:", data.data?.userStatusChanged);
+      console.log("User status changed:", data.data?.userStatusChanged);
       refetchUsers();
     },
   });
 
   useEffect(() => {
     if (messagesData?.messages) {
-      console.log("[v0] Messages data updated for room:", selectedRoomId, "count:", messagesData.messages.length);
+      console.log("Messages data updated for room:", selectedRoomId, "count:", messagesData.messages.length);
       setMessages(messagesData.messages);
     }
   }, [messagesData, selectedRoomId]);
 
   const selectRoom = useCallback(
     (roomId: string) => {
-      console.log("[v0] Selecting room:", roomId);
+      console.log("Selecting room:", roomId);
       setSelectedRoomId(roomId);
 
       // Clear messages when switching rooms to avoid showing old messages
@@ -165,22 +153,27 @@ export function useChat() {
     setNewMessageSound(false);
   }, []);
 
-  // <CHANGE> Fixed sendMessage to accept roomId as first parameter and properly handle the backend input format
   const sendMessage = async (roomId: string, text: string, media?: File) => {
-    console.log("[v0] sendMessage called with roomId:", roomId, "text:", text, "media:", media);
+    console.log("sendMessage called with roomId:", roomId, "text:", text);
 
-    if (!roomId) {
-      console.error("[v0] Cannot send message: No room ID provided");
-      throw new Error("Room ID is required");
-    }
-
-    if (!text.trim() && !media) {
-      console.error("[v0] Cannot send message: No content provided");
+    if (!roomId || (!text.trim() && !media)) {
+      console.error("Cannot send message: Invalid input");
       return;
     }
 
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      roomId,
+      senderId: user?.id || "",
+      text: text.trim(),
+      createdAt: new Date().toISOString(),
+      media: undefined,
+    };
+
     try {
-      console.log("[v0] Sending message to room:", roomId, "text:", text);
+      if (roomId === selectedRoomId) {
+        setMessages((prev) => [...prev, optimisticMessage]);
+      }
 
       // Handle file upload if media is present
       let mediaData = undefined;
@@ -202,16 +195,23 @@ export function useChat() {
         },
       });
 
-      console.log("[v0] Message sent successfully");
+      if (roomId === selectedRoomId) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticMessage.id));
+      }
+
+      console.log("Message sent successfully");
     } catch (error) {
-      console.error("[v0] Error sending message:", error);
+      if (roomId === selectedRoomId) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticMessage.id));
+      }
+      console.error("Error sending message:", error);
       throw error;
     }
   };
 
   const createRoom = async (participantIds: string[], isGroup = false, name?: string) => {
     try {
-      console.log("[v0] Creating room with participants:", participantIds);
+      console.log("Creating room with participants:", participantIds);
       const { data } = await createRoomMutation({
         variables: {
           participantIds,
@@ -221,29 +221,29 @@ export function useChat() {
       });
 
       if (data?.createRoom) {
-        console.log("[v0] Room created successfully:", data.createRoom.id);
+        console.log("Room created successfully:", data.createRoom.id);
         await refetchRooms();
         return data.createRoom;
       }
     } catch (error) {
-      console.error("[v0] Error creating room:", error);
+      console.error("Error creating room:", error);
       throw error;
     }
   };
 
   const findOrCreateDirectRoom = async (participantId: string) => {
     try {
-      console.log("[v0] Finding or creating direct room with participant:", participantId);
+      console.log("Finding or creating direct room with participant:", participantId);
       const { data } = await findOrCreateRoom({
         variables: { participantId },
       });
 
       if (data?.findOrCreateRoom) {
-        console.log("[v0] Direct room found/created:", data.findOrCreateRoom.id);
+        console.log("Direct room found/created:", data.findOrCreateRoom.id);
         await refetchRooms();
 
         const roomId = data.findOrCreateRoom.id;
-        console.log("[v0] Immediately selecting room:", roomId);
+        console.log("Immediately selecting room:", roomId);
         setSelectedRoomId(roomId);
         setUnreadCounts((prev) => ({
           ...prev,
@@ -252,11 +252,11 @@ export function useChat() {
 
         return data.findOrCreateRoom;
       } else {
-        console.error("[v0] No room data returned from findOrCreateRoom");
+        console.error("No room data returned from findOrCreateRoom");
         return null;
       }
     } catch (error) {
-      console.error("[v0] Error finding/creating room:", error);
+      console.error("Error finding/creating room:", error);
       throw error;
     }
   };
