@@ -5,6 +5,8 @@ export interface ChatWindowProps {
   currentUser: {
     name: string
     image: string
+    isOnline?:boolean
+    lastSeen?:string
   }
   onSendMessage: (message: string, files?: File[]) => Promise<void>
   onBack: () => void
@@ -14,6 +16,8 @@ export interface ChatHeaderProps {
   currentUser: {
     name: string;
     image: string;
+    isOnline?:boolean
+    lastSeen?:string
   };
   onBack?: () => void;
 }

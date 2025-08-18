@@ -8,10 +8,7 @@ import { ChatInput } from "./components/Chat-room-input";
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   chats,
-  currentUser = {
-    name: "Designer",
-    image: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=150&h=150&fit=crop&crop=face",
-  },
+  currentUser,
   onSendMessage,
   onBack,
 }) => {

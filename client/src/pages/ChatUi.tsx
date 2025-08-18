@@ -143,6 +143,8 @@ export default function ChatUi() {
         image:
           currentRoom.participants.find((p: User) => p.id !== user?.id)?.profileImage ||
           "https://images.unsplash.com/vector-1742875355318-00d715aec3e8?q=80&w=880",
+        isOnline:currentRoom.participants.find((p: User) => p.id !== user?.id)?.isOnline,
+        lastSeen:currentRoom.participants.find((p: User) => p.id !== user?.id)?.lastSeen  
       }
     : {
         name: "Select a chat",

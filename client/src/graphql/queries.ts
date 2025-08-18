@@ -39,6 +39,7 @@ export const ROOMS_QUERY = gql`
         username
         email
         isOnline
+        lastSeen
       }
       isGroup
       name
@@ -74,6 +75,7 @@ export const FIND_OR_CREATE_ROOM_QUERY = gql`
         email
         profileImage
         isOnline
+        lastSeen
       }
       isGroup
       name

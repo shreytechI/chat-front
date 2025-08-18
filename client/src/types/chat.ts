@@ -106,7 +106,7 @@ export interface User {
   email: string
   profileImage?: string 
   isOnline: boolean
-  lastSeen?: string
+  lastSeen: string|null
   createdAt: string
 }
 
