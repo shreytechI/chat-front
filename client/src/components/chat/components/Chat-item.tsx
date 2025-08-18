@@ -15,13 +15,7 @@ export const ChatItem: React.FC<ChatItemProps> = ({ chatData }) => {
 
         return (
           <div key={message.id || index} className={`flex gap-2 mb-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-            {/* Avatar only show for received messages */}
-            {!isOwn && (
-              <div className="flex-shrink-0 self-end">
-                <ChatAvatar src={image} alt={name} />
-              </div>
-            )}
-
+          
             {/* Message container */}
             <div className="flex-1 space-y-1 min-w-0">
               {/* User name only show for received messages and first message */}

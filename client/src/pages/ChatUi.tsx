@@ -18,13 +18,11 @@ export default function ChatUi() {
     messages,
     selectedRoomId,
     roomsLoading,
-    messagesLoading,
     sendMessage,
     selectRoom,
     unreadCounts,
     roomLatestMessages,
     connectionStatus,
-    handleSoundPlayed,
     findOrCreateDirectRoom,
   } = useChat();
 
@@ -51,7 +49,7 @@ export default function ChatUi() {
         const lastMessage = existingRoom ? roomLatestMessages[existingRoom.id] : null;
 
         return {
-          image: u.profileImage || "/placeholder.svg?height=150&width=150",
+          image: u.profileImage || "https://images.unsplash.com/vector-1742875355318-00d715aec3e8?q=80&w=880",
           name: u.username,
           shortmessage: lastMessage?.text || "Click to start chatting",
           timestamp: lastMessage ? formatTime(lastMessage.createdAt) : "",
@@ -142,13 +140,13 @@ export default function ChatUi() {
         name: currentRoom.isGroup
           ? currentRoom.name || "Group Chat"
           : currentRoom.participants.find((p: User) => p.id !== user?.id)?.username || "Unknown User",
-        image: currentRoom.isGroup
-          ? "/placeholder.svg?height=150&width=150"
-          : currentRoom.participants.find((p: User) => p.id !== user?.id)?.profileImage || "/placeholder.svg?height=150&width=150",
+        image:
+          currentRoom.participants.find((p: User) => p.id !== user?.id)?.profileImage ||
+          "https://images.unsplash.com/vector-1742875355318-00d715aec3e8?q=80&w=880",
       }
     : {
         name: "Select a chat",
-        image: "/placeholder.svg?height=150&width=150",
+        image: "",
       };
 
   const chatData = useMemo(() => {
