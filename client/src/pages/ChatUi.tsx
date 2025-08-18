@@ -43,7 +43,7 @@ export default function ChatUi() {
 
   const userList: UserListRowProps[] = useMemo(() => {
     return users
-      .filter((u: User) => u.id !== user?.id) 
+      .filter((u: User) => u.id !== user?.id)
       .map((u: User) => {
         // Find existing room with this user
         const existingRoom = rooms.find((room: Room) => !room.isGroup && room.participants.some((p: User) => p.id === u.id));
@@ -166,28 +166,35 @@ export default function ChatUi() {
         id: selectedRoomId,
         name: currentChatUser.name,
         image: currentChatUser.image,
-        chat: messages.map((msg: Message) => ({
-          id: msg.id,
-          text: msg.text || "",
-          dateTime: msg.createdAt,
-          isOwn: msg.senderId === user?.id,
-          file: msg.media
-            ? [
-                {
-                  type: msg.media.mimeType?.startsWith("image/")
-                    ? ("image" as const)
-                    : msg.media.mimeType?.startsWith("video/")
-                    ? ("video" as const)
-                    : msg.media.mimeType?.startsWith("audio/")
-                    ? ("audio" as const)
-                    : ("document" as const),
-                  url: `${process.env.NEXT_PUBLIC_FILES_URL || "http://localhost:4000/uploads"}/${msg.media.url}`,
-                  name: msg.media.url,
-                  size: undefined,
-                },
-              ]
-            : undefined,
-        })),
+        chat: messages.map((msg: Message) => {
+          let file;
+
+          // Only create file array if media and media.url exist
+          if (msg.media && msg.media.url) {
+            file = [
+              {
+                type: msg.media.mimeType?.startsWith("image/")
+                  ? ("image" as const)
+                  : msg.media.mimeType?.startsWith("video/")
+                  ? ("video" as const)
+                  : msg.media.mimeType?.startsWith("audio/")
+                  ? ("audio" as const)
+                  : ("document" as const),
+                url: `${process.env.NEXT_PUBLIC_FILES_URL || "http://localhost:4000/uploads"}/${msg.media.url}`,
+                name: msg.media.url,
+                size: "10mb dum",
+              },
+            ];
+          }
+
+          return {
+            id: msg.id,
+            text: msg.text || "",
+            dateTime: msg.createdAt,
+            isOwn: msg.senderId === user?.id,
+            file,
+          };
+        }),
       },
     ];
   }, [selectedRoomId, currentRoom, messages, currentChatUser, user?.id]);
