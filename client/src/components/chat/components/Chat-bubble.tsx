@@ -8,6 +8,8 @@ import { ChatFile } from "./Chat-file"
 import { ChatTimestamp } from "./Chat-time-stamp"
 
 export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isOwn }) => {
+  console.log("message detials from the message bubble",message);
+  
   return (
     <div className={isOwn ? "flex justify-end group relative" : "flex justify-start group relative"}>
       <div
