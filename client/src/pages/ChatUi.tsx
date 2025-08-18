@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import OnlineUser from "@/components/online-users/Online-user";
 import UserListRow from "@/components/user-list-row/UserListRow";
 import { ChatWindow } from "@/components/chat-room/ChatWindow";
+import { formatTime } from "@/utils/dateUtils";
 
 export default function ChatUi() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,13 +54,7 @@ export default function ChatUi() {
           image: u.profileImage || "/placeholder.svg?height=150&width=150",
           name: u.username,
           shortmessage: lastMessage?.text || "Click to start chatting",
-          timestamp: lastMessage
-            ? new Date(lastMessage.createdAt).toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              })
-            : "",
+          timestamp: lastMessage ? formatTime(lastMessage.createdAt) : "",
           isOnline: u.isOnline,
           notifications: existingRoom ? unreadCounts[existingRoom.id] || 0 : 0,
           onClick: () => handleUserClick(u.id),
