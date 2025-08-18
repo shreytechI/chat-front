@@ -22,8 +22,6 @@ export default function ChatUi() {
     selectRoom,
     unreadCounts,
     roomLatestMessages,
-    newMessageSound,
-    typingUsers,
     connectionStatus,
     handleSoundPlayed,
     findOrCreateDirectRoom,
@@ -45,7 +43,7 @@ export default function ChatUi() {
 
   const userList: UserListRowProps[] = useMemo(() => {
     return users
-      .filter((u: User) => u.id !== user?.id) // Exclude current user
+      .filter((u: User) => u.id !== user?.id) 
       .map((u: User) => {
         // Find existing room with this user
         const existingRoom = rooms.find((room: Room) => !room.isGroup && room.participants.some((p: User) => p.id === u.id));
