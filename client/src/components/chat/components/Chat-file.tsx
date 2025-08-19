@@ -27,8 +27,8 @@ export const ChatFile: React.FC<ChatFileProps> = ({ file }) => {
         <Image
           src={file.url}
           alt="Shared image"
-          width={40}
-          height={40}
+          width={400}
+          height={400}
           className="w-full h-auto max-h-64 object-cover"
           loading="lazy"
         />
