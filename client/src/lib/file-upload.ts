@@ -123,7 +123,7 @@ export async function uploadFile(file: File, onProgress?: (progress: FileUploadP
     });
 
     xhr.open("POST", process.env.NEXT_PUBLIC_UPLOAD_URL || "http://localhost:4000/upload");
-    xhr.timeout = 60000; // 60 second timeout
+    xhr.timeout = 60000; 
     xhr.send(formData);
   });
 }

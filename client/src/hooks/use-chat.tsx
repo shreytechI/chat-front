@@ -154,8 +154,6 @@ export function useChat() {
   }, []);
 
   const sendMessage = async (roomId: string, text: string, media?: File) => {
-    console.log("sendMessage called with roomId:", roomId, "text:", text);
-
     if (!roomId || (!text.trim() && !media)) {
       console.error("Cannot send message: Invalid input");
       return;

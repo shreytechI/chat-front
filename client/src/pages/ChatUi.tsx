@@ -89,14 +89,11 @@ export default function ChatUi() {
   };
 
   const handleSendMessage = async (message: string, files?: File[]) => {
-    console.log("reached the handle send message function ", selectedRoomId, " mes", message);
 
     if (!selectedRoomId) {
       console.error(" No room selected for sending message");
       throw new Error("No room selected");
     }
-
-    console.log(" Sending message to room:", selectedRoomId, "text:", message);
 
     const media = files && files.length > 0 ? files[0] : undefined;
 
