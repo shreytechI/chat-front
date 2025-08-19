@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     skip: !token || !isAuthenticatedFlag, // Skip if no token or not authenticated
     fetchPolicy: "cache-and-network", // Always try to fetch fresh data
     onCompleted: (data) => {
-      console.log("[v0] ME_QUERY completed:", data);
       if (data?.me) {
         setUser(data.me);
       }
@@ -48,14 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    console.log("[v0] AuthProvider mounted, token:", !!token, "isAuthenticated:", isAuthenticatedFlag);
-
     if (!token || !isAuthenticatedFlag) {
-      console.log("[v0] No token or not authenticated, setting loading to false");
       setLoading(false);
       setUser(null);
     } else {
-      console.log("[v0] Token and authentication flag found, will fetch user data");
       // If token exists and authenticated but query was skipped, refetch
       if (!userData && token && isAuthenticatedFlag) {
         refetch();
@@ -65,15 +60,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (input: LoginInput): Promise<AuthPayload> => {
     try {
-      console.log("login input from the auth context", input);
-
       const { data } = await apolloClient.mutate({
         mutation: LOGIN_MUTATION,
         variables: { input },
       });
-
-      console.log(data, "data from the login context");
-      console.log(data.user, "data user from the login context");
 
       if (data?.login) {
         const authPayload = data.login;
@@ -119,8 +109,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return;
 
     try {
-      console.log("[v0] Setting user online status:", isOnline);
-
       await apolloClient.mutate({
         mutation: SET_USER_ONLINE_MUTATION,
         variables: { isOnline },

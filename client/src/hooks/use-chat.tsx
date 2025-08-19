@@ -57,7 +57,6 @@ export function useChat() {
     onData: ({ data }) => {
       if (data.data?.messageAddedToUserRooms) {
         const newMessage = data.data.messageAddedToUserRooms;
-        console.log("New message received:", newMessage);
 
         if (newMessage.roomId === selectedRoomId) {
           setMessages((prev) => {
@@ -87,16 +86,13 @@ export function useChat() {
       console.error("Subscription error:", error);
       setConnectionStatus("disconnected");
     },
-    onComplete: () => {
-      console.log("Subscription completed");
-    },
+    onComplete: () => {},
   });
 
   useSubscription(ROOM_UPDATED_SUBSCRIPTION, {
     skip: !user,
     onData: ({ data }) => {
       if (data.data?.roomUpdated) {
-        console.log("Room updated:", data.data.roomUpdated);
         refetchRooms();
       }
     },
@@ -105,21 +101,18 @@ export function useChat() {
   useSubscription(USER_STATUS_CHANGED_SUBSCRIPTION, {
     skip: !user,
     onData: ({ data }) => {
-      console.log("User status changed:", data.data?.userStatusChanged);
       refetchUsers();
     },
   });
 
   useEffect(() => {
     if (messagesData?.messages) {
-      console.log("Messages data updated for room:", selectedRoomId, "count:", messagesData.messages.length);
       setMessages(messagesData.messages);
     }
   }, [messagesData, selectedRoomId]);
 
   const selectRoom = useCallback(
     (roomId: string) => {
-      console.log("Selecting room:", roomId);
       setSelectedRoomId(roomId);
 
       // Clear messages when switching rooms to avoid showing old messages
@@ -196,8 +189,6 @@ export function useChat() {
       if (roomId === selectedRoomId) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticMessage.id));
       }
-
-      console.log("Message sent successfully");
     } catch (error) {
       if (roomId === selectedRoomId) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticMessage.id));
@@ -209,7 +200,6 @@ export function useChat() {
 
   const createRoom = async (participantIds: string[], isGroup = false, name?: string) => {
     try {
-      console.log("Creating room with participants:", participantIds);
       const { data } = await createRoomMutation({
         variables: {
           participantIds,
@@ -219,7 +209,6 @@ export function useChat() {
       });
 
       if (data?.createRoom) {
-        console.log("Room created successfully:", data.createRoom.id);
         await refetchRooms();
         return data.createRoom;
       }
@@ -231,17 +220,14 @@ export function useChat() {
 
   const findOrCreateDirectRoom = async (participantId: string) => {
     try {
-      console.log("Finding or creating direct room with participant:", participantId);
       const { data } = await findOrCreateRoom({
         variables: { participantId },
       });
 
       if (data?.findOrCreateRoom) {
-        console.log("Direct room found/created:", data.findOrCreateRoom.id);
         await refetchRooms();
 
         const roomId = data.findOrCreateRoom.id;
-        console.log("Immediately selecting room:", roomId);
         setSelectedRoomId(roomId);
         setUnreadCounts((prev) => ({
           ...prev,

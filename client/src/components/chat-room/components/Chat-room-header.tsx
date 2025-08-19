@@ -1,36 +1,14 @@
 "use client";
 
 import type { ChatHeaderProps } from "@/types/chatRoom";
+import { formatLastSeen } from "@/utils/dateUtils";
 import Image from "next/image";
 import type React from "react";
 import { BsSearch, BsThreeDotsVertical, BsTelephone, BsCameraVideo, BsArrowLeft } from "react-icons/bs";
 import { LuUserRoundPlus } from "react-icons/lu";
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({ currentUser, onBack }) => {
-  console.log("current user from the chat header", currentUser);
-
-  // Helper to format lastSeen
-  const formatLastSeen = (lastSeen?: string) => {
-    if (!lastSeen) return "few mins ago";
-
-    const lastSeenDate = new Date(typeof lastSeen === "string" ? Number(lastSeen) || lastSeen : lastSeen);
-    const diffMs = Date.now() - lastSeenDate.getTime();
-    const diffMinutes = Math.floor(diffMs / 60000);
-
-    if (diffMinutes < 1) return "just now";
-    if (diffMinutes < 60) return `${diffMinutes} min${diffMinutes > 1 ? "s" : ""} ago`;
-
-    const diffHours = Math.floor(diffMinutes / 60);
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-
-    return lastSeenDate.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
+  
   return (
     <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-200 bg-white">
       <div className="flex items-center gap-3">

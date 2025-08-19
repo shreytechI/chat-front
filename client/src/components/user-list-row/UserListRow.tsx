@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
-import type { UserListRowProps } from "@/types/chat"
-import OnlineUser from "../online-users/Online-user"
+import type React from "react";
+import type { UserListRowProps } from "@/types/chat";
+import OnlineUser from "../online-users/Online-user";
 
 const UserListRow: React.FC<UserListRowProps> = ({
   image,
@@ -17,13 +17,10 @@ const UserListRow: React.FC<UserListRowProps> = ({
 }) => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault()
-      onClick?.()
+      e.preventDefault();
+      onClick?.();
     }
-  }
-
-  console.log("time stamp from the userlistrow",timestamp);
-  
+  };
 
   return (
     <div
@@ -57,15 +54,11 @@ const UserListRow: React.FC<UserListRowProps> = ({
       <div className="flex-1 min-w-0">
         {/* Name and Timestamp Row */}
         <div className="flex items-center justify-between mb-1">
-          <h3
-            className={`font-semibold truncate text-sm sm:text-base md:text-lg ${notifications > 0 ? "text-gray-900" : "text-gray-800"}`}
-          >
+          <h3 className={`font-semibold truncate text-sm sm:text-base md:text-lg ${notifications > 0 ? "text-gray-900" : "text-gray-800"}`}>
             {name}
           </h3>
           {timestamp && (
-            <span
-              className={`text-xs sm:text-sm flex-shrink-0 ml-2 ${notifications > 0 ? "text-blue-600 font-medium" : "text-gray-500"}`}
-            >
+            <span className={`text-xs sm:text-sm flex-shrink-0 ml-2 ${notifications > 0 ? "text-blue-600 font-medium" : "text-gray-500"}`}>
               {timestamp}
             </span>
           )}
@@ -77,26 +70,13 @@ const UserListRow: React.FC<UserListRowProps> = ({
               <div className="flex items-center gap-1">
                 <span className="text-xs sm:text-sm text-blue-600 font-medium">typing</span>
                 <div className="flex gap-0.5">
-                  <div
-                    className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"
-                    style={{ animationDelay: "0ms" }}
-                  ></div>
-                  <div
-                    className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"
-                    style={{ animationDelay: "150ms" }}
-                  ></div>
-                  <div
-                    className="w-1 h-1 bg-blue-600 rounded-full animate-bounce"
-                    style={{ animationDelay: "300ms" }}
-                  ></div>
+                  <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+                  <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+                  <div className="w-1 h-1 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
                 </div>
               </div>
             ) : (
-              <p
-                className={`text-xs sm:text-sm truncate ${notifications > 0 ? "text-gray-700 font-medium" : "text-gray-600"}`}
-              >
-                {shortmessage}
-              </p>
+              <p className={`text-xs sm:text-sm truncate ${notifications > 0 ? "text-gray-700 font-medium" : "text-gray-600"}`}>{shortmessage}</p>
             )}
           </div>
           {/* Notification Badge */}
@@ -111,7 +91,7 @@ const UserListRow: React.FC<UserListRowProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserListRow
+export default UserListRow;

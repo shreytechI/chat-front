@@ -26,7 +26,7 @@ interface FormErrors {
 export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
   const router = useRouter();
   const isSignup = mode === "signup";
-  const { setUser } = useAuth(); 
+  const { setUser } = useAuth();
 
   // GraphQL mutations and queries
   const [loginMutation] = useMutation(LOGIN_MUTATION);
@@ -86,7 +86,6 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
 
     try {
       if (isSignup) {
-        console.log("[v0] Attempting signup...");
         const { data } = await signupMutation({
           variables: {
             input: {
@@ -97,17 +96,14 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
           },
         });
 
-        console.log("[v0] Signup response:", data);
         if (data?.signup) {
           const authPayload = data.signup;
-          console.log("[v0] Setting token and user:", authPayload);
           setAuthToken(authPayload.token);
           setIsAuthenticated(true);
           setUser(authPayload.user);
           router.push("/chat");
         }
       } else {
-        console.log("[v0] Attempting login...");
         const { data } = await loginMutation({
           variables: {
             input: {
@@ -117,10 +113,8 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
           },
         });
 
-        console.log("[v0] Login response:", data);
         if (data?.login) {
           const authPayload = data.login;
-          console.log("[v0] Setting token and user:", authPayload);
           setAuthToken(authPayload.token);
           setIsAuthenticated(true);
           setUser(authPayload.user);
@@ -128,7 +122,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
         }
       }
     } catch (error: any) {
-      console.error("[v0] Auth error:", error);
+      console.error("Auth error:", error);
 
       // Handle GraphQL errors
       const errorMessage =

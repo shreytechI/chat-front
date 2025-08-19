@@ -17,7 +17,6 @@ const wsLink =
           url: process.env.NEXT_PUBLIC_GRAPHQL_WS_URL || "ws://localhost:4000/graphql",
           connectionParams: () => {
             const token = getAuthToken();
-            console.log("WebSocket connecting with token:", token ? "present" : "missing");
             return {
               authorization: token ? `Bearer ${token}` : "",
               token: token || "",
@@ -79,7 +78,6 @@ export const apolloClient = new ApolloClient({
           messages: {
             keyArgs: ["roomId"],
             merge(existing = [], incoming, { args }) {
-              console.log("Cache merge - existing:", existing.length, "incoming:", incoming.length);
               if (!existing.length) {
                 return incoming;
               }

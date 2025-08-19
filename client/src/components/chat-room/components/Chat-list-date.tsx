@@ -9,8 +9,6 @@ interface ChatWithDatesProps {
 }
 
 export const ChatWithDates: React.FC<ChatWithDatesProps> = ({ chats }) => {
-  console.log("chats from the chat date props", chats);
-
   const getDateLabel = (dateValue: string | number): string => {
     // Handle both ISO string & timestamp
     const timestamp = typeof dateValue === "string" ? Number(dateValue) : dateValue;

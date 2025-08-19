@@ -1,15 +1,13 @@
 "use client";
 
-import type React from "react"
-import { BsThreeDotsVertical } from "react-icons/bs"
+import type React from "react";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
-import type { ChatBubbleProps } from "@/types/chat"
-import { ChatFile } from "./Chat-file"
-import { ChatTimestamp } from "./Chat-time-stamp"
+import type { ChatBubbleProps } from "@/types/chat";
+import { ChatFile } from "./Chat-file";
+import { ChatTimestamp } from "./Chat-time-stamp";
 
 export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isOwn }) => {
-  console.log("message detials from the message bubble",message);
-  
   return (
     <div className={isOwn ? "flex justify-end group relative" : "flex justify-start group relative"}>
       <div
@@ -52,5 +50,5 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isOwn }) => {
         <BsThreeDotsVertical className="w-4 h-4 text-muted-foreground" />
       </button>
     </div>
-  )
-}
+  );
+};

@@ -22,12 +22,6 @@ export function useChatUiControl() {
     findOrCreateDirectRoom,
   } = useChat();
 
-  useEffect(() => {
-    if (user) {
-      console.log(" User entered chat UI, setting online status");
-    }
-  }, [user]);
-
   const totalUnread = useMemo(() => {
     return Object.values(unreadCounts).reduce((sum, count) => sum + count, 0);
   }, [unreadCounts]);
@@ -38,22 +32,13 @@ export function useChatUiControl() {
 
   const handleUserClick = async (userId: string) => {
     try {
-      console.log(" User clicked, userId:", userId);
-
-      const existingRoom = rooms.find(
-        (room: Room) =>
-          !room.isGroup &&
-          room.participants.some((p: User) => p.id === userId)
-      );
+      const existingRoom = rooms.find((room: Room) => !room.isGroup && room.participants.some((p: User) => p.id === userId));
 
       if (existingRoom) {
-        console.log(" Found existing room:", existingRoom.id);
         selectRoom(existingRoom.id);
       } else {
-        console.log(" Creating new room for user:", userId);
         const newRoom = await findOrCreateDirectRoom(userId);
         if (newRoom) {
-          console.log(" Created/found room:", newRoom.id);
         } else {
           console.error(" Failed to create room");
           alert("Failed to create chat room. Please try again.");
@@ -78,19 +63,11 @@ export function useChatUiControl() {
     return users
       .filter((u: User) => u.id !== user?.id)
       .map((u: User) => {
-        const existingRoom = rooms.find(
-          (room: Room) =>
-            !room.isGroup &&
-            room.participants.some((p: User) => p.id === u.id)
-        );
-        const lastMessage = existingRoom
-          ? roomLatestMessages[existingRoom.id]
-          : null;
+        const existingRoom = rooms.find((room: Room) => !room.isGroup && room.participants.some((p: User) => p.id === u.id));
+        const lastMessage = existingRoom ? roomLatestMessages[existingRoom.id] : null;
 
         return {
-          image:
-            u.profileImage ||
-            "https://images.unsplash.com/vector-1742875355318-00d715aec3e8?q=80&w=880",
+          image: u.profileImage || "https://images.unsplash.com/vector-1742875355318-00d715aec3e8?q=80&w=880",
           name: u.username,
           shortmessage: lastMessage?.text || "Click to start chatting",
           timestamp: lastMessage ? formatTime(lastMessage.createdAt) : "",
@@ -120,20 +97,11 @@ export function useChatUiControl() {
     return userList
       .filter(
         (userItem) =>
-          userItem.name
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          userItem.shortmessage
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())
+          userItem.name.toLowerCase().includes(searchQuery.toLowerCase()) || userItem.shortmessage.toLowerCase().includes(searchQuery.toLowerCase())
       )
       .sort((a, b) => {
-        const aNameMatch = a.name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase());
-        const bNameMatch = b.name
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase());
+        const aNameMatch = a.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const bNameMatch = b.name.toLowerCase().includes(searchQuery.toLowerCase());
         if (aNameMatch && !bNameMatch) return -1;
         if (!aNameMatch && bNameMatch) return 1;
         if (a.isOnline && !b.isOnline) return -1;
@@ -147,16 +115,12 @@ export function useChatUiControl() {
     ? {
         name: currentRoom.isGroup
           ? currentRoom.name || "Group Chat"
-          : currentRoom.participants.find((p: User) => p.id !== user?.id)
-              ?.username || "Unknown User",
+          : currentRoom.participants.find((p: User) => p.id !== user?.id)?.username || "Unknown User",
         image:
-          currentRoom.participants.find((p: User) => p.id !== user?.id)
-            ?.profileImage ||
+          currentRoom.participants.find((p: User) => p.id !== user?.id)?.profileImage ||
           "https://images.unsplash.com/vector-1742875355318-00d715aec3e8?q=80&w=880",
-        isOnline: currentRoom.participants.find((p: User) => p.id !== user?.id)
-          ?.isOnline,
-        lastSeen: currentRoom.participants.find((p: User) => p.id !== user?.id)
-          ?.lastSeen,
+        isOnline: currentRoom.participants.find((p: User) => p.id !== user?.id)?.isOnline,
+        lastSeen: currentRoom.participants.find((p: User) => p.id !== user?.id)?.lastSeen,
       }
     : {
         name: "Select a chat",
@@ -165,13 +129,6 @@ export function useChatUiControl() {
 
   const chatData = useMemo(() => {
     if (!selectedRoomId || !currentRoom) return [];
-
-    console.log(
-      " Generating chat data for room:",
-      selectedRoomId,
-      "messages count:",
-      messages.length
-    );
 
     return [
       {
@@ -190,10 +147,7 @@ export function useChatUiControl() {
                   : msg.media.mimeType?.startsWith("audio/")
                   ? ("audio" as const)
                   : ("document" as const),
-                url: `${
-                  process.env.NEXT_PUBLIC_FILES_URL ||
-                  "http://localhost:4000/uploads"
-                }/${msg.media.url}`,
+                url: `${process.env.NEXT_PUBLIC_FILES_URL || "http://localhost:4000/uploads"}/${msg.media.url}`,
                 name: msg.media.url,
                 size: "10mb dum",
               },
