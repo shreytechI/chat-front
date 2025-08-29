@@ -8,6 +8,7 @@ import { AuthForm } from "@/components/auth/AuthForm";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [role, setRole] = useState<"user" | "management">("user");
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -35,13 +36,17 @@ export default function AuthPage() {
   const toggleMode = () => {
     setMode((prev) => (prev === "login" ? "signup" : "login"));
   };
+  //toggleRole function
+  const toggleRole = () => {
+    setRole((prev) => (prev === "user" ? "management" : "user"));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white p-8 rounded-2xl shadow-xl border border-violet-100">
-          <AuthHeader mode={mode} />
-          <AuthForm mode={mode} onToggleMode={toggleMode} />
+          <AuthHeader mode={mode} role={role} />
+          <AuthForm mode={mode} onToggleMode={toggleMode} role={role} onToggleRole={toggleRole} />{" "}
         </div>
 
         <div className="absolute top-10 left-10 w-20 h-20 bg-violet-100 rounded-full blur-xl opacity-50"></div>

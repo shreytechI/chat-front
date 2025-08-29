@@ -3,10 +3,12 @@
 
 interface AuthHeaderProps {
   mode: "login" | "signup";
+  role: "user" | "management"; 
 }
 
-export function AuthHeader({ mode }: AuthHeaderProps) {
+export function AuthHeader({ mode, role }: AuthHeaderProps) {
   const isSignup = mode === "signup";
+  const roleCap = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
     <div className="text-center mb-8">
@@ -23,9 +25,13 @@ export function AuthHeader({ mode }: AuthHeaderProps) {
         </div>
       </div>
 
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">{isSignup ? "Join the Chat" : "Welcome Back"}</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        {isSignup ? `${roleCap} Registration` : "Welcome Back"} 
+      </h1>
 
-      <p className="text-gray-600 text-lg">{isSignup ? "Create your account to start chatting" : "Sign in to continue your conversations"}</p>
+      <p className="text-gray-600 text-lg">
+        {isSignup ? `Create your ${role} account to start chatting` : "Sign in to continue your conversations"} 
+      </p>
     </div>
   );
 }

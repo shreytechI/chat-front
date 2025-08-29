@@ -12,6 +12,7 @@ export const SIGNUP_MUTATION = gql`
         isOnline
         lastSeen
         createdAt
+        role
       }
     }
   }

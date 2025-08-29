@@ -14,6 +14,8 @@ import { AuthButton } from "./AuthButton";
 interface AuthFormProps {
   mode: "login" | "signup";
   onToggleMode: () => void;
+  role: "user" | "management";
+  onToggleRole: () => void;
 }
 
 interface FormErrors {
@@ -23,7 +25,7 @@ interface FormErrors {
   general?: string;
 }
 
-export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
+export function AuthForm({ mode, onToggleMode, role, onToggleRole }: AuthFormProps) {
   const router = useRouter();
   const isSignup = mode === "signup";
   const { setUser } = useAuth();
@@ -92,6 +94,7 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
               username: formData.username,
               email: formData.email,
               password: formData.password,
+              role,
             },
           },
         });
@@ -194,6 +197,19 @@ export function AuthForm({ mode, onToggleMode }: AuthFormProps) {
           {isSignup ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
         </button>
       </div>
+
+      {isSignup /*  role toggle to show  */ && (
+        <div className="text-center pt-2">
+          <button
+            type="button"
+            onClick={onToggleRole}
+            disabled={isLoading}
+            className="text-gray-600 hover:text-violet-600 transition-colors duration-200 text-sm font-medium disabled:opacity-50"
+          >
+            Switch to {role === "user" ? "Management" : "User"} Signup
+          </button>
+        </div>
+      )}
     </form>
   );
 }
