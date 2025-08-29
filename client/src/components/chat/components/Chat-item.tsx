@@ -2,7 +2,6 @@
 
 import type React from "react"
 import { ChatBubble } from "./Chat-bubble"
-import { ChatAvatar } from "./Chat-avatar"
 import type { ChatItemProps } from "@/types/chat"
 
 export const ChatItem: React.FC<ChatItemProps> = ({ chatData }) => {

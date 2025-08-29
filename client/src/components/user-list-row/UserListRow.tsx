@@ -3,6 +3,7 @@
 import type React from "react";
 import type { UserListRowProps } from "@/types/chat";
 import OnlineUser from "../online-users/Online-user";
+import { twMerge } from "tailwind-merge";
 
 const UserListRow: React.FC<UserListRowProps> = ({
   image,
@@ -24,7 +25,8 @@ const UserListRow: React.FC<UserListRowProps> = ({
 
   return (
     <div
-      className={`
+      className={twMerge(
+        `
         flex items-center
         gap-2 p-2
         sm:gap-2 sm:p-2
@@ -33,9 +35,10 @@ const UserListRow: React.FC<UserListRowProps> = ({
         bg-white
         hover:bg-gray-50 transition-all duration-200
         cursor-pointer border-b border-gray-100 last:border-b-0
-        ${notifications > 0 ? "bg-blue-50 border-l-4 border-l-blue-500" : ""}
-        ${className}
-      `}
+        `,
+        notifications > 0 && "bg-blue-50 border-l-4 border-l-blue-500",
+        className
+      )}
       role="button"
       tabIndex={0}
       aria-label={`Chat with ${name}`}
@@ -54,11 +57,11 @@ const UserListRow: React.FC<UserListRowProps> = ({
       <div className="flex-1 min-w-0">
         {/* Name and Timestamp Row */}
         <div className="flex items-center justify-between mb-1">
-          <h3 className={`font-semibold truncate text-sm sm:text-base md:text-lg ${notifications > 0 ? "text-gray-900" : "text-gray-800"}`}>
+          <h3 className={twMerge("font-semibold truncate text-sm sm:text-base md:text-lg", notifications > 0 ? "text-gray-900" : "text-gray-800")}>
             {name}
           </h3>
           {timestamp && (
-            <span className={`text-xs sm:text-sm flex-shrink-0 ml-2 ${notifications > 0 ? "text-blue-600 font-medium" : "text-gray-500"}`}>
+            <span className={twMerge("text-xs sm:text-sm flex-shrink-0 ml-2", notifications > 0 ? "text-blue-600 font-medium" : "text-gray-500")}>
               {timestamp}
             </span>
           )}
@@ -76,7 +79,9 @@ const UserListRow: React.FC<UserListRowProps> = ({
                 </div>
               </div>
             ) : (
-              <p className={`text-xs sm:text-sm truncate ${notifications > 0 ? "text-gray-700 font-medium" : "text-gray-600"}`}>{shortmessage}</p>
+              <p className={twMerge("text-xs sm:text-sm truncate", notifications > 0 ? "text-gray-700 font-medium" : "text-gray-600")}>
+                {shortmessage}
+              </p>
             )}
           </div>
           {/* Notification Badge */}

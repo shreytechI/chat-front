@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { twMerge } from "tailwind-merge";
 
 interface AuthButtonProps {
   children: React.ReactNode;
@@ -21,7 +22,7 @@ export function AuthButton({ children, onClick, disabled = false, variant = "pri
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`${baseClasses} ${variantClasses[variant]} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+      className={twMerge(baseClasses, variantClasses[variant], disabled && "opacity-50 cursor-not-allowed")}
     >
       {children}
     </button>
